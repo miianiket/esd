@@ -1,0 +1,152 @@
+#include &quot;main.h&quot;
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN PV */
+// 1. ADDED: Define the messages you want to print
+unsigned char MSG1[] = &quot;Hello Good Day&quot;;
+unsigned char MSG2[] = &quot;Welcome KJCOEMR&quot;;
+/* USER CODE END PV */
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+/* USER CODE BEGIN PFP */
+// 2. FIXED: Only the function prototypes belong here
+void LCD_Data(unsigned char DAT);
+void LCD_Command(unsigned char CMD);
+void LCD_Init(void);
+void LCD_StringDisplay(unsigned char *str); // Added missing prototype
+int main(void)
+{
+/* MCU Configuration--------------------------------------------------------*/
+/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+HAL_Init();
+/* Configure the system clock */
+SystemClock_Config();
+/* Initialize all configured peripherals */
+MX_GPIO_Init();
+/* USER CODE BEGIN 2 */
+LCD_Init();
+LCD_StringDisplay(MSG1);
+LCD_Command(0xC0); // Move cursor to the second line
+LCD_StringDisplay(MSG2);
+/* USER CODE END 2 */
+while (1)
+{
+/* USER CODE END WHILE */
+/* USER CODE BEGIN 3 */
+
+}
+/* USER CODE END 3 */
+}
+void SystemClock_Config(void)
+{
+RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+__HAL_RCC_PWR_CLK_ENABLE();
+__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+if (HAL_RCC_OscConfig(&amp;RCC_OscInitStruct) != HAL_OK)
+{
+Error_Handler();
+}
+RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+if (HAL_RCC_ClockConfig(&amp;RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+{
+Error_Handler();
+}
+}
+static void MX_GPIO_Init(void)
+{
+GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* GPIO Ports Clock Enable */
+__HAL_RCC_GPIOH_CLK_ENABLE();
+__HAL_RCC_GPIOC_CLK_ENABLE();
+__HAL_RCC_GPIOA_CLK_ENABLE();
+/*Configure GPIO pin Output Level */
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
+|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
+
+|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+/*Configure GPIO pins : PC0 to PC9 */
+GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
+|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
+|GPIO_PIN_8|GPIO_PIN_9;
+GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+HAL_GPIO_Init(GPIOC, &amp;GPIO_InitStruct);
+}
+
+void LCD_Data (unsigned char DAT)
+{
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET); // RS = 1
+// Ternary operators (? 1 : 0) added to strictly send 1s and 0s to HAL
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, (DAT &amp; 0x01) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, (DAT &amp; 0x02) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, (DAT &amp; 0x04) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, (DAT &amp; 0x08) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, (DAT &amp; 0x10) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, (DAT &amp; 0x20) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, (DAT &amp; 0x40) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, (DAT &amp; 0x80) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET); // EN = 1
+HAL_Delay(3);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET); // EN = 0
+HAL_Delay(1);
+}
+void LCD_Command (unsigned char CMD)
+{
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET); // RS = 0
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, (CMD &amp; 0x01) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, (CMD &amp; 0x02) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, (CMD &amp; 0x04) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, (CMD &amp; 0x08) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, (CMD &amp; 0x10) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, (CMD &amp; 0x20) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, (CMD &amp; 0x40) ? 1 : 0);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, (CMD &amp; 0x80) ? 1 : 0);
+
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET); // EN = 1
+HAL_Delay(3);
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET); // EN = 0
+HAL_Delay(1);
+}
+void LCD_Init(void)
+{
+LCD_Command(0x38); // Set 8-bit mode
+HAL_Delay(20);
+LCD_Command(0x06); // Auto-increment cursor
+HAL_Delay(20);
+LCD_Command(0x0C); // Display ON, Cursor OFF
+HAL_Delay(20);
+LCD_Command(0x01); // Clear Display
+HAL_Delay(20);
+}
+// 4. ADDED: Missing string display function
+void LCD_StringDisplay(unsigned char *str)
+{
+while (*str != &#39;\0&#39;)
+{
+LCD_Data(*str);
+str++;
+}
+}
+void Error_Handler(void)
+{
+__disable_irq();
+while (1)
+{
+}
+}
+#ifdef USE_FULL_ASSERT
+void assert_failed(uint8_t *file, uint32_t line)
+{
+}
+#endif /* USE_FULL_ASSERT
